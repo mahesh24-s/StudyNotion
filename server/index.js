@@ -46,7 +46,7 @@ app.use("/api/v1/reach", contactUsRoute);
 app.get("/", (req,res) => {
     return res.json({
         success: true,
-        message: "Server is running, Welcome to the backend API of our course management system",
+        message: "Server is running good, Welcome to the backend API of our course management system",
     })
 })
 
