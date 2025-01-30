@@ -19,10 +19,15 @@ export default function Instructor() {
       const instructorApiData = await getInstructorData(token)
       const result = await fetchInstructorCourses(token)
       console.log("printing instructor api data ",instructorApiData);
-      if (instructorApiData.length) setInstructorData(instructorApiData)
+      console.log("printing instructor courses",result);
+
+      if (instructorApiData.length)
+         setInstructorData(instructorApiData)
+
       if (result) {
-        setCourses(result)
+        setCourses(result.result)
       }
+
       setLoading(false)
     })()
   }, [])
