@@ -8,8 +8,8 @@ const mailSender= async(email,title,body) =>{
         //transporter //shift this configuraion under config folder
         const transporter=nodemailer.createTransport({
             host:process.env.MAIL_HOST,
-            port: 465,
-            secure: true,
+            port: 587,
+            secure: false,
             debug: true, // Enable debugging
             logger: true, // Log information to console
             auth: {
