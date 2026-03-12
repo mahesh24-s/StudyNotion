@@ -10,7 +10,10 @@ const mailSender= async(email,title,body) =>{
             host:process.env.MAIL_HOST,
             port: 587,
             secure: false,
-            debug: true, // Enable debugging
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 10000,
+            // debug: true, // Enable debugging
             logger: true, // Log information to console
             auth: {
                 user: process.env.MAIL_USER,
@@ -18,15 +21,23 @@ const mailSender= async(email,title,body) =>{
             },
         });
 
-        // send mail
-        let info = await transporter.sendMail({
-            from:"studyNotion Project",
+        const options = {
+            from:"studyNotion",
             to:`${email}`,
             subject:`${title}`,
             html:`${body}`,
+        };
+
+        // send mail
+        let info = await transporter.sendMail(options, (error, info) => {
+            if (error) {
+                console.error('Email error:', error)
+            } else {
+                console.log('Email sent:', info.response)
+            }
         })
 
-        console.log("info after sending mail: ", info);
+        // console.log("info after sending mail: ", info);
         return info;
     }
 

@@ -29,16 +29,14 @@ exports.resetPasswordToken = async (req, res) => {
 		const url = `https://study-notion-frontend2-theta.vercel.app/update-password/${token}`;
 		// const url = `http://localhost:3000/update-password/${token}`;
 
-		const response = await mailSender(
+		await mailSender(
 			email,
 			"Password Reset",
 			`Your Link for email verification is ${url}. Please click this url to reset your password.`
 		);
-		console.log("response after sending mail to user : ", response);
 
 		res.json({
 			success: true,
-			response,
 			token: token,
 			message: "Email Sent Successfully, Please Check Your Email to Continue Further",
 		});
