@@ -7,14 +7,14 @@ const mailSender= async(email,title,body) =>{
 
         //transporter //shift this configuraion under config folder
         const transporter=nodemailer.createTransport({
-            host:process.env.MAIL_HOST,
-            port: 587,
-            secure: false,
+            // host:process.env.MAIL_HOST,
             connectionTimeout: 10000,
             greetingTimeout: 10000,
             socketTimeout: 10000,
             // debug: true, // Enable debugging
             logger: true, // Log information to console
+
+            service: "gmail",
             auth: {
                 user: process.env.MAIL_USER,
                 pass: process.env.MAIL_PASS,
