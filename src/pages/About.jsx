@@ -49,7 +49,6 @@ const About = () => {
       <section>
         <div className="mx-auto flex w-10/12 max-w-maxContent flex-col justify-between gap-10 text-richblack-500">
           <div className="flex flex-col items-center gap-10 lg:flex-row justify-between">
-            
             <div className="my-24 flex lg:w-[50%] flex-col gap-10">
               <h1 className="bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCB045] bg-clip-text text-4xl font-semibold text-transparent lg:w-[70%] ">
                 Our Founding Story
@@ -75,13 +74,8 @@ const About = () => {
             </div>
 
             <div>
-              <img
-                src={FoundingStory}
-                alt=""
-                className="shadow-[0_0_20px_0] shadow-[#FC6767]"
-              />
+              <img src={FoundingStory} alt="" className="shadow-[0_0_20px_0] shadow-[#FC6767]" />
             </div>
-
           </div>
 
           <div className="flex flex-col my-24  -mt-6 items-center lg:gap-10 lg:flex-row justify-between">
@@ -107,7 +101,6 @@ const About = () => {
                 Our mission goes beyond just delivering courses online. We wanted to create a vibrant community of learners, where individuals can connect, collaborate, and learn from one another. We believe that knowledge thrives in an environment of sharing and dialogue, and we foster this spirit of collaboration through forums, live sessions, and networking opportunities.
               </p>
             </div>
-
           </div>
         </div>
       </section>

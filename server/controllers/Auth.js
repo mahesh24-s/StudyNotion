@@ -166,11 +166,12 @@ exports.login = async (req, res) => {
 		});
 	}
 };
+
 // Send OTP For Email Verification
 exports.sendotp = async (req, res) => {
 	try {
 		const { email } = req.body;
-
+		console.log("inside sentOTP controller");
 		// Check if user is already present
 		// Find user with provided email
 		const checkUserPresent = await User.findOne({ email });

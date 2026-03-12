@@ -28,7 +28,6 @@ const CodeBlocks = ({
                     {ctabtn2.btnText}
             </CTAButton>
         </div>
-
     </div>
 
      {/*Section 2*/}
@@ -63,10 +62,8 @@ const CodeBlocks = ({
             omitDeletionAnimation={true}
            />
         </div>
-
      </div>
-
-
+     
     </div>
   )
 }

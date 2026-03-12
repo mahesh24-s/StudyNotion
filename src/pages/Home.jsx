@@ -29,7 +29,6 @@ const Home = () => {
                     <FaArrowRight />
                 </div>
             </div>
-
         </Link>
 
         <div className='text-center text-4xl font-semibold mt-7'>
@@ -91,7 +90,7 @@ const Home = () => {
             />
         </div>
 
-                {/* Code Section 2 */}
+        {/* Code Section 2 */}
         <div>
             <CodeBlocks 
                 position={"lg:flex-row-reverse"}
@@ -137,8 +136,7 @@ const Home = () => {
                             <div className='flex items-center gap-3' >
                                 Explore Full Catalog
                                 <FaArrowRight />
-                            </div>
-                            
+                            </div>      
                         </CTAButton>
                         <CTAButton active={false} linkto={"/signup"}>
                             <div>
@@ -187,7 +185,6 @@ const Home = () => {
       </div>
 
       <Footer />
-
     </div>
   )
 }

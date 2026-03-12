@@ -1,7 +1,7 @@
 import React from "react"
 import copy from "copy-to-clipboard"
 import { toast } from "react-hot-toast"
-import { BsFillCaretRightFill } from "react-icons/bs"
+// import { BsFillCaretRightFill } from "react-icons/bs"
 import { FaShareSquare } from "react-icons/fa"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
@@ -22,7 +22,7 @@ function CourseDetailsCard({ course, setConfirmationModal, handleBuyCourse,total
   const {
     thumbnail: ThumbnailImage,
     price: CurrentPrice,
-    _id: courseId,
+    // _id: courseId,
   } = course
 
   const handleShare = () => {

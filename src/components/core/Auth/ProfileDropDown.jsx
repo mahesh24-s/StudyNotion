@@ -21,13 +21,12 @@ export default function ProfileDropdown() {
   return (
     <button className="relative" onClick={() => setOpen(true)}>
       <div className="flex items-center gap-x-1">
-        <img
-          src={user?.image}
-          alt={`profile-${user?.firstName}`}
+        <img src={user?.image} alt={`profile-${user?.firstName}`}
           className="aspect-square w-[30px] rounded-full object-cover"
         />
         <AiOutlineCaretDown className="text-sm text-richblack-100" />
       </div>
+
       {open && (
         <div
           onClick={(e) => e.stopPropagation()}
@@ -40,6 +39,7 @@ export default function ProfileDropdown() {
               Dashboard
             </div>
           </Link>
+          
           <div
             onClick={() => {
               dispatch(logout(navigate))

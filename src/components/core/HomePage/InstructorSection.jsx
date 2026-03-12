@@ -18,7 +18,7 @@ const InstructorSection = () => {
         </div>
 
         <div className='w-[47%] flex flex-col gap-10'>
-            <div className='text-4xl font-semobold w-[50%]'>
+            <div className='text-4xl font-semibold w-[50%]'>
                 Become an
                 <HighlightText text={"Instructor"} />
             </div>

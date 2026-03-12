@@ -37,10 +37,7 @@ const Footer = () => {
               <div className="flex flex-col gap-2">
                 {["About", "Careers", "Affiliates"].map((ele, i) => {
                   return (
-                    <div
-                      key={i}
-                      className="text-[14px] cursor-pointer hover:text-richblack-50 transition-all duration-200"
-                    >
+                    <div key={i} className="text-[14px] cursor-pointer hover:text-richblack-50 transition-all duration-200" >
                       <Link to={ele.toLowerCase()}>{ele}</Link>
                     </div>
                   );
@@ -63,10 +60,7 @@ const Footer = () => {
               <div className="flex flex-col gap-2 mt-2">
                 {Resources.map((ele, index) => {
                   return (
-                    <div
-                      key={index}
-                      className="text-[14px] cursor-pointer hover:text-richblack-50 transition-all duration-200"
-                    >
+                    <div key={index} className="text-[14px] cursor-pointer hover:text-richblack-50 transition-all duration-200" >
                       <Link to={ele.split(" ").join("-").toLowerCase()}>
                         {ele}
                       </Link>
@@ -134,10 +128,7 @@ const Footer = () => {
                   <div className="flex flex-col gap-2 mt-2">
                     {ele.links.map((link, index) => {
                       return (
-                        <div
-                          key={index}
-                          className="text-[14px] cursor-pointer hover:text-richblack-50 transition-all duration-200"
-                        >
+                        <div key={index} className="text-[14px] cursor-pointer hover:text-richblack-50 transition-all duration-200" >
                           <Link to={link.link}>{link.title}</Link>
                         </div>
                       );
@@ -156,13 +147,8 @@ const Footer = () => {
           <div className="flex flex-row">
             {BottomFooter.map((ele, i) => {
               return (
-                <div
-                  key={i}
-                  className={` ${
-                    BottomFooter.length - 1 === i
-                      ? ""
-                      : "border-r border-richblack-700 cursor-pointer hover:text-richblack-50 transition-all duration-200"
-                  } px-3 `}
+                <div key={i}
+                  className={` ${BottomFooter.length-1 === i  ? ""  : "border-r border-richblack-700 cursor-pointer hover:text-richblack-50 transition-all duration-200" } px-3 `}
                 >
                   <Link to={ele.split(" ").join("-").toLocaleLowerCase()}>
                     {ele}
