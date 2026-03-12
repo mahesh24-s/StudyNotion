@@ -1,54 +1,35 @@
-const nodemailer=require('nodemailer');
+const nodemailer = require("nodemailer");
 require("dotenv").config();
 
-const mailSender= async(email,title,body) =>{
-    try{
-        // console.log("DOC",  doc);
+const mailSender = async (email, title, body) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: process.env.BREVO_SMTP_HOST || "smtp-relay.brevo.com",
+      port: Number(process.env.BREVO_SMTP_PORT) || 587,
+      secure: false, // true if you choose port 465 and want SSL
+      auth: {
+        user: process.env.BREVO_SMTP_USER,
+        pass: process.env.BREVO_SMTP_PASS,
+      },
+    });
 
-        //transporter //shift this configuraion under config folder
-        const transporter=nodemailer.createTransport({
-            // host:process.env.MAIL_HOST,
-            service: 'gmail',
-            host: 'https://www.google.com/search?q=smtp.gmail.com',
-            port: 465,
-            secure: true, // SSL
+    const options = {
+      from: {
+        name: process.env.BREVO_FROM_NAME || "StudyNotion",
+        address: process.env.BREVO_FROM_EMAIL,
+      },
+      to: email,
+      subject: title,
+      html: body,
+    };
 
-            // connectionTimeout: 10000,
-            // greetingTimeout: 10000,
-            // socketTimeout: 10000,
-            // // debug: true, // Enable debugging
-            // logger: true, // Log information to console
+    const info = await transporter.sendMail(options);
+    console.log("Email sent:", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("Email error:", error);
+    throw error;
+  }
+};
 
-            auth: {
-                user: process.env.MAIL_USER,
-                pass: process.env.MAIL_PASS,
-            },
-        });
-
-        const options = {
-            from:"studyNotion",
-            to:`${email}`,
-            subject:`${title}`,
-            html:`${body}`,
-        };
-
-        // send mail
-        let info = await transporter.sendMail(options, (error, info) => {
-            if (error) {
-                console.error('Email error:', error)
-            } else {
-                console.log('Email sent:', info.response)
-            }
-        })
-
-        // console.log("info after sending mail: ", info);
-        return info;
-    }
-
-    catch(error){
-        console.error(error.message);
-        
-    }
-}
-
-module.exports=mailSender;
+module.exports = mailSender;
