@@ -10,6 +10,8 @@ const mailSender= async(email,title,body) =>{
             host:process.env.MAIL_HOST,
             port: 465,
             secure: true,
+            debug: true, // Enable debugging
+            logger: true, // Log information to console
             auth: {
                 user: process.env.MAIL_USER,
                 pass: process.env.MAIL_PASS,
