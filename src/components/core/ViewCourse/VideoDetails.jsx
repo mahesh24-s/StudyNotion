@@ -38,17 +38,19 @@ const VideoDetails = () => {
           const filteredData = courseSectionData.filter(
               (section) => section._id === sectionId
           )
-          console.log("printing filteredData",filteredData)
+          // console.log("printing filteredData",filteredData)
           
           //filteredData is an array(why because we are finding curr subsection by applying filter method on courseSection data) containing one entry of current subsection
-          const filteredVideoData = filteredData?.[0].subSection.filter(
+          const filteredVideoData = filteredData?.[0]?.subSection?.filter(
               (data) => data._id === subSectionId
-          )
-          console.log("printing filteredvideodata",filteredVideoData);
+          ) || []
+          // console.log("printing filteredvideodata",filteredVideoData);
 
-          setVideoData(filteredVideoData[0]);
-          setPreviewSource(courseEntireData.thumbnail)
-          setVideoEnded(false);
+          if (filteredVideoData[0]) {
+            setVideoData(filteredVideoData[0]);
+            setPreviewSource(courseEntireData?.thumbnail)
+            setVideoEnded(false);
+          }
       }
     }
 
@@ -60,6 +62,10 @@ const VideoDetails = () => {
     const currentSectionIndx = courseSectionData.findIndex(
       (data) => data._id === sectionId
     )
+
+    if (currentSectionIndx === -1) {
+      return false;
+    }
 
     const currentSubSectionIndx = courseSectionData[
       currentSectionIndx
@@ -113,6 +119,10 @@ const VideoDetails = () => {
     const currentSectionIndx = courseSectionData.findIndex(
       (data) => data._id === sectionId
     )
+
+    if (currentSectionIndx === -1) {
+      return false;
+    }
 
     const noOfSubsections =
       courseSectionData[currentSectionIndx].subSection.length

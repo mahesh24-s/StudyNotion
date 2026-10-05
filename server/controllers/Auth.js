@@ -40,7 +40,7 @@ exports.signup = async (req, res) => {
 
 		// Find the most recent OTP for the email
 		const response = await OTP.find({ email }).sort({ createdAt: -1 }).limit(1);
-		console.log(response);
+		// //console.log(response);
 
 		if (response.length === 0) {
 			// OTP not found for the email
@@ -58,12 +58,14 @@ exports.signup = async (req, res) => {
 			});
 		}
 
+		// Delete the validated OTP to prevent replay attacks
+		await OTP.findByIdAndDelete(response[0]._id);
+
 		// Hash the password
 		const hashedPassword = await bcrypt.hash(password, 10);
 
-		// Create the user
-		let approved = "";
-		approved === "Instructor" ? (approved = false) : (approved = true);
+		// Determine approval status (Instructors require admin approval)
+		const approved = accountType === "Instructor" ? false : true;
 
 		// Create the Additional Profile For User
 		const profileDetails = await Profile.create({
@@ -85,6 +87,7 @@ exports.signup = async (req, res) => {
 			image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName} ${lastName}`,
 		});
 
+		user.password = undefined;
 		return res.status(200).json({
 			success: true,
 			user,
@@ -135,6 +138,7 @@ exports.login = async (req, res) => {
 
 			// Save token to user document in database
 			user.token = token;
+			await user.save();
 			user.password = undefined;
 			// Set cookie for token and return success response
 			const options = {
@@ -157,7 +161,7 @@ exports.login = async (req, res) => {
 		}
 	} 
 	catch (error) {
-		console.error(error);
+		// //console.error(error);
 		// Return 500 Internal Server Error status code with error message
 		return res.status(500).json({
 			success: false,
@@ -171,7 +175,7 @@ exports.login = async (req, res) => {
 exports.sendotp = async (req, res) => {
 	try {
 		const { email } = req.body;
-		console.log("inside sentOTP controller");
+		// console.log("inside sentOTP controller");
 		// Check if user is already present
 		// Find user with provided email
 		const checkUserPresent = await User.findOne({ email });
@@ -186,32 +190,33 @@ exports.sendotp = async (req, res) => {
 			});
 		}
 
-		var otp = otpGenerator.generate(6, {
+		let otp = otpGenerator.generate(6, {
 			upperCaseAlphabets: false,
 			lowerCaseAlphabets: false,
 			specialChars: false,
 		});
 
-		const result = await OTP.findOne({ otp: otp });
-		console.log("OTP", otp);
-		console.log("Result", result);
-
-		while (result) {
+		let result = await OTP.findOne({ otp: otp });
+		let attempts = 0;
+		while (result && attempts < 10) {
 			otp = otpGenerator.generate(6, {
 				upperCaseAlphabets: false,
+				lowerCaseAlphabets: false,
+				specialChars: false,
 			});
+			result = await OTP.findOne({ otp: otp });
+			attempts++;
 		}
 
 		const otpPayload = { email, otp };
-		const otpBody = await OTP.create(otpPayload);
-		console.log("OTP Body", otpBody);
-		res.status(200).json({
+		await OTP.create(otpPayload);
+
+		return res.status(200).json({
 			success: true,
 			message: `OTP Sent Successfully`,
-			otp,
 		});
 	} catch (error) {
-		console.log(error.message);
+		// //console.log(error.message);
 		return res.status(500).json({ success: false, error: error.message });
 	}
 };
@@ -255,12 +260,12 @@ exports.changePassword = async (req, res) => {
 					`Password updated successfully for ${updatedUserDetails.firstName} ${updatedUserDetails.lastName}`
 				)
 			);
-			console.log("Email sent successfully:", emailResponse.response);
+			// //console.log("Email sent successfully:", emailResponse.response);
 		} 
 		
 		catch (error) {
 			// If there's an error sending the email, log the error and return a 500 (Internal Server Error) error
-			console.error("Error occurred while sending email:", error);
+			// //console.error("Error occurred while sending email:", error);
 			return res.status(500).json({
 				success: false,
 				message: "Error occurred while sending email",
@@ -277,7 +282,7 @@ exports.changePassword = async (req, res) => {
 	
 	catch (error) {
 		// If there's an error updating the password, log the error and return a 500 (Internal Server Error) error
-		console.error("Error occurred while updating password:", error);
+		// //console.error("Error occurred while updating password:", error);
 		return res.status(500).json({
 			success: false,
 			message: "Error occurred while updating password",

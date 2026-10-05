@@ -32,8 +32,8 @@ exports.createCourse = async (req, res) => {
     const tag = JSON.parse(_tag)
     const instructions = JSON.parse(_instructions)
 
-    console.log("tag", tag)
-    console.log("instructions", instructions)
+    // console.log("tag", tag)
+    // console.log("instructions", instructions)
 
     // Check if any of the required fields are missing
     if (
@@ -56,7 +56,7 @@ exports.createCourse = async (req, res) => {
       status = "Draft"
     }
     // Check if the user is an instructor
-    const instructorDetails = await User.findById(userId, {
+    const instructorDetails = await User.findOne({_id:userId, 
       accountType: "Instructor",
     })
 
@@ -80,7 +80,7 @@ exports.createCourse = async (req, res) => {
       thumbnail,
       process.env.FOLDER_NAME
     )
-    console.log(thumbnailImage)
+    // console.log(thumbnailImage)
     // Create a new course with the given details
     const newCourse = await Course.create({
       courseName,
@@ -118,7 +118,7 @@ exports.createCourse = async (req, res) => {
       },
       { new: true }
     )
-    console.log("HEREEEEEEEE", categoryDetails2);
+    // console.log("HEREEEEEEEE", categoryDetails2);
 
     // Return the new course and a success message
     res.status(200).json({
@@ -143,6 +143,7 @@ exports.createCourse = async (req, res) => {
 exports.editCourse = async (req, res) => {
   try {
     const { courseId } = req.body
+    const userId = req.user.id
     const updates = req.body
     const course = await Course.findById(courseId)
 
@@ -150,9 +151,17 @@ exports.editCourse = async (req, res) => {
       return res.status(404).json({ error: "Course not found" })
     }
 
+    // Check authorization: only the instructor who created the course or an Admin can edit it
+    if (course.instructor.toString() !== userId && req.user.accountType !== "Admin") {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to edit this course",
+      })
+    }
+
     // If Thumbnail Image is found, update it
-    if (req.files) {
-      console.log("thumbnail update")
+    if (req.files && req.files.thumbnailImage) {
+      // console.log("thumbnail update")
       const thumbnail = req.files.thumbnailImage
       const thumbnailImage = await uploadImageToCloudinary(
         thumbnail,
@@ -161,13 +170,12 @@ exports.editCourse = async (req, res) => {
       course.thumbnail = thumbnailImage.secure_url
     }
 
-    // Update only the fields that are present in the request body
+    // Update all fields present in the request body
     for (const key in updates) {
       if (updates.hasOwnProperty(key)) {
         if (key === "tag" || key === "instructions") {
-          course[key] = JSON.parse(updates[key])
-        } 
-        else {
+          course[key] = typeof updates[key] === "string" ? JSON.parse(updates[key]) : updates[key]
+        } else {
           course[key] = updates[key]
         }
       }
@@ -235,7 +243,7 @@ exports.getAllCourses = async (req, res) => {
   } 
   
   catch (error) {
-    console.log(error)
+    // console.log(error)
     return res.status(404).json({
       success: false,
       message: `Can't Fetch Course Data`,
@@ -309,6 +317,41 @@ exports.getFullCourseDetails = async (req, res) => {
   try {
     const { courseId } = req.body
     const userId = req.user.id
+
+    if (!courseId) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide course ID",
+      })
+    }
+
+    // Lightweight access check before running heavy populates
+    const accessCheck = await Course.findById(courseId)
+      .select("studentsEnrolled instructor")
+      .lean()
+
+    if (!accessCheck) {
+      return res.status(404).json({
+        success: false,
+        message: `Could not find course with id: ${courseId}`,
+      })
+    }
+
+    const role = req.user.accountType
+    const isAdmin = role === "Admin"
+    const isOwner =
+      accessCheck.instructor?.toString() === userId.toString()
+    const isEnrolled = accessCheck.studentsEnrolled?.some(
+      (enrolledId) => enrolledId.toString() === userId.toString()
+    )
+
+    if (!isEnrolled && !isAdmin && !(role === "Instructor" && isOwner)) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Please enroll in this course to view full details.",
+      })
+    }
+
     const courseDetails = await Course.findOne({
       _id: courseId,
     })
@@ -333,10 +376,10 @@ exports.getFullCourseDetails = async (req, res) => {
       userId: userId,
     })
 
-    console.log("courseProgressCount : ", courseProgressCount)
+    // console.log("courseProgressCount : ", courseProgressCount)
 
     if (!courseDetails) {
-      return res.status(400).json({
+      return res.status(404).json({
         success: false,
         message: `Could not find course with id: ${courseId}`,
       })
@@ -390,7 +433,7 @@ exports.getInstructorCourses = async (req, res) => {
     })
     .sort({ createdAt: -1 })
 
-    console.log("printing instructor courses", instructorCourses);
+    // console.log("printing instructor courses", instructorCourses);
 
     const courseDurationArr = instructorCourses.map((course,i) =>{
       let totalDurationInSeconds = 0
@@ -404,7 +447,7 @@ exports.getInstructorCourses = async (req, res) => {
       const totalDuration = convertSecondsToDuration(totalDurationInSeconds)
       return totalDuration;
     })
-    console.log("printing course duration arr for instructor dashboard",courseDurationArr);
+    // console.log("printing course duration arr for instructor dashboard",courseDurationArr);
 
 
     // Return the instructor's courses
@@ -427,11 +470,20 @@ exports.getInstructorCourses = async (req, res) => {
 exports.deleteCourse = async (req, res) => {
   try {
     const { courseId } = req.body
+    const userId = req.user.id
 
     // Find the course
     const course = await Course.findById(courseId)
     if (!course) {
       return res.status(404).json({ message: "Course not found" })
+    }
+
+    // Check authorization: only the instructor who created the course or an Admin can delete it
+    if (course.instructor.toString() !== userId && req.user.accountType !== "Admin") {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to delete this course",
+      })
     }
 
     // Unenroll students from the course
@@ -456,6 +508,13 @@ exports.deleteCourse = async (req, res) => {
 
       // Delete the section
       await Section.findByIdAndDelete(sectionId)
+    }
+
+    // Remove course from Category
+    if (course.category) {
+      await Category.findByIdAndUpdate(course.category, {
+        $pull: { courses: courseId },
+      })
     }
 
     // Delete the course

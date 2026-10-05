@@ -11,30 +11,44 @@ const { convertSecondsToDuration } = require("../utils/secToDuration")
 exports.updateProfile = async (req, res) => {
   try {
     const {
-      firstName = "",
-      lastName = "",
-      dateOfBirth = "",
-      about = "",
-      contactNumber = "",
-      gender = "",
+      firstName,
+      lastName,
+      dateOfBirth,
+      about,
+      contactNumber,
+      gender,
     } = req.body
     const id = req.user.id
 
-    // Find the profile by id
+    // Find the user and profile
     const userDetails = await User.findById(id)
+    if (!userDetails) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      })
+    }
+
     const profile = await Profile.findById(userDetails.additionalDetails)
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: "Profile not found",
+      })
+    }
 
-    const user = await User.findByIdAndUpdate(id, {
-      firstName,
-      lastName,
-    })
-    await user.save()
+    const userUpdates = {}
+    if (firstName !== undefined) userUpdates.firstName = firstName
+    if (lastName !== undefined) userUpdates.lastName = lastName
+    if (Object.keys(userUpdates).length > 0) {
+      await User.findByIdAndUpdate(id, userUpdates)
+    }
 
-    // Update the profile fields
-    profile.dateOfBirth = dateOfBirth
-    profile.about = about
-    profile.contactNumber = contactNumber
-    profile.gender = gender
+    // Update the profile fields only if provided
+    if (dateOfBirth !== undefined) profile.dateOfBirth = dateOfBirth
+    if (about !== undefined) profile.about = about
+    if (contactNumber !== undefined) profile.contactNumber = contactNumber
+    if (gender !== undefined) profile.gender = gender
 
     // Save the updated profile
     await profile.save()
@@ -52,7 +66,7 @@ exports.updateProfile = async (req, res) => {
   } 
   
   catch (error) {
-    console.log(error)
+    // //console.log(error)
     return res.status(500).json({
       success: false,
       error: error.message,
@@ -62,8 +76,11 @@ exports.updateProfile = async (req, res) => {
 
 exports.deleteAccount = async (req, res) => {
   try {
-    const id = req.user.id
-    console.log(id)
+    const id = req.user.id;
+
+    // here we are deleting the user assuming the user is not instructor or admin and deleting the student's enrolled courses only, the case for if the user is instructor or admin is not handled.
+
+    // //console.log(id)
     const user = await User.findById({ _id: id })
     if (!user) {
       return res.status(404).json({
@@ -84,18 +101,20 @@ exports.deleteAccount = async (req, res) => {
       )
     }
 
+    // Clean up associated data
+    await CourseProgress.deleteMany({ userId: id })
+    await RatingAndReview.deleteMany({ user: id })
+
     // Now Delete User
     await User.findByIdAndDelete({ _id: id })
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "User deleted successfully",
     })
-    await CourseProgress.deleteMany({ userId: id })
-    await RatingAndReview.deleteMany({ user: id })
   } 
   
   catch (error) {
-    console.log(error)
+    // console.log(error)
     res.status(500).json({ 
       success: false, 
       message: "User Cannot be deleted successfully" 
@@ -109,7 +128,7 @@ exports.getAllUserDetails = async (req, res) => {
     const userDetails = await User.findById(id)
       .populate("additionalDetails")
       .exec()
-    console.log(userDetails)
+    // //console.log(userDetails)
     res.status(200).json({
       success: true,
       message: "User Data fetched successfully",
@@ -134,7 +153,7 @@ exports.updateDisplayPicture = async (req, res) => {
       1000,
       1000
     )
-    console.log(image)
+    // //console.log(image)
     const updatedProfile = await User.findByIdAndUpdate(
       { _id: userId },
       { image: image.secure_url },
@@ -170,29 +189,42 @@ exports.getEnrolledCourses = async (req, res) => {
           },
         },
       })
-      .exec()
+      .exec();
+
+    if (!userDetails) {
+      return res.status(404).json({
+        success: false,
+        message: `Could not find user with id: ${userId}`,
+      })
+    }
   
     userDetails = userDetails.toObject()
-    var SubsectionLength = 0
+    // Filter out any courses that may have been deleted from the database
+    userDetails.courses = (userDetails.courses || []).filter((course) => course != null)
 
     for (var i = 0; i < userDetails.courses.length; i++) {
         let totalDurationInSeconds = 0
-        SubsectionLength = 0
+        let SubsectionLength = 0
+        const courseContent = userDetails.courses[i].courseContent || []
         
-        for (var j = 0; j < userDetails.courses[i].courseContent.length; j++) {
-          totalDurationInSeconds += userDetails.courses[i].courseContent[j]
-          .subSection.reduce((acc, curr) => acc + parseInt(curr.timeDuration), 0)
+        for (var j = 0; j < courseContent.length; j++) {
+          const subSections = courseContent[j].subSection || []
+          totalDurationInSeconds += subSections.reduce(
+            (acc, curr) => acc + (parseInt(curr?.timeDuration, 10) || 0),
+            0
+          )
           
-          userDetails.courses[i].totalDuration = convertSecondsToDuration(totalDurationInSeconds)
-          SubsectionLength +=userDetails.courses[i].courseContent[j].subSection.length
+          SubsectionLength += subSections.length
         }
+
+        userDetails.courses[i].totalDuration = convertSecondsToDuration(totalDurationInSeconds)
 
         let courseProgressCount = await CourseProgress.findOne({
           courseID: userDetails.courses[i]._id,
           userId: userId,
         })
 
-        courseProgressCount = courseProgressCount?.completedVideos.length
+        const completedCount = courseProgressCount?.completedVideos?.length || 0
 
         if (SubsectionLength === 0) {
           userDetails.courses[i].progressPercentage = 100
@@ -203,16 +235,9 @@ exports.getEnrolledCourses = async (req, res) => {
           const multiplier = Math.pow(10, 2)
           userDetails.courses[i].progressPercentage =
             Math.round(
-              (courseProgressCount / SubsectionLength) * 100 * multiplier
+              (completedCount / SubsectionLength) * 100 * multiplier
             ) / multiplier
         }
-    }
-
-    if (!userDetails) {
-      return res.status(400).json({
-        success: false,
-        message: `Could not find user with id: ${userDetails}`,
-      })
     }
 
     return res.status(200).json({

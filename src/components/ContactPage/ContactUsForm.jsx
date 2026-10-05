@@ -18,7 +18,7 @@ const ContactUsForm = () => {
     // console.log("Form Data - ", data)
     try {
       setLoading(true)
-      console.log(data);
+      // console.log(data);
       await apiConnector(
         "POST",
         contactusEndpoint.CONTACT_US_API,
@@ -29,7 +29,7 @@ const ContactUsForm = () => {
     } 
     
     catch (error) {
-      console.log("ERROR MESSAGE - ", error.message)
+      console.error("ERROR MESSAGE - ", error.message)
       setLoading(false)
     }
   }

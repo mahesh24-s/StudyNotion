@@ -1,8 +1,8 @@
 const SibApiV3Sdk = require("sib-api-v3-sdk");
 require("dotenv").config();
 
-console.log("BREVO_API_KEY present?", !!process.env.BREVO_API_KEY);
-console.log("BREVO_API_KEY length:", process.env.BREVO_API_KEY?.length);
+// console.log("BREVO_API_KEY present?", !!process.env.BREVO_API_KEY);
+// console.log("BREVO_API_KEY length:", process.env.BREVO_API_KEY?.length);
 
 const client = SibApiV3Sdk.ApiClient.instance;
 client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
@@ -22,7 +22,7 @@ const mailSender = async (email, title, body) => {
 
   try {
     const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    console.log("Brevo email sent:", data?.messageId || data);
+    // console.log("Brevo email sent:", data?.messageId || data);
     return data;
   } catch (error) {
     console.error("Brevo API email error:", error.response?.text || error);

@@ -35,15 +35,14 @@ exports.resetPasswordToken = async (req, res) => {
 			`Your Link for email verification is ${url}. Please click this url to reset your password.`
 		);
 
-		res.json({
+		res.status(200).json({
 			success: true,
-			token: token,
 			message: "Email Sent Successfully, Please Check Your Email to Continue Further",
 		});
 	} 
 	
 	catch (error) {
-		return res.json({
+		return res.status(500).json({
 			error: error.message,
 			success: false,
 			message: `Some Error in Sending the Reset Message`,
@@ -56,7 +55,7 @@ exports.resetPassword = async (req, res) => {
 		const { password, confirmPassword, token } = req.body;
 
 		if (confirmPassword !== password) {
-			return res.json({
+			return res.status(400).json({
 				success: false,
 				message: "Password and Confirm Password Does not Match",
 			});
@@ -65,7 +64,7 @@ exports.resetPassword = async (req, res) => {
 		const userDetails = await User.findOne({ token: token });
 
 		if (!userDetails) {
-			return res.json({
+			return res.status(400).json({
 				success: false,
 				message: "Token is Invalid",
 			});
@@ -81,18 +80,22 @@ exports.resetPassword = async (req, res) => {
 		const encryptedPassword = await bcrypt.hash(password, 10);
 		await User.findOneAndUpdate(
 			{ token: token },
-			{ password: encryptedPassword },
+			{
+				password: encryptedPassword,
+				token: null,
+				resetPasswordExpires: null,
+			},
 			{ new: true }
 		);
 
-		res.json({
+		return res.status(200).json({
 			success: true,
 			message: `Password Reset Successful`,
 		});
 	} 
 	
 	catch (error) {
-		return res.json({
+		return res.status(500).json({
 			error: error.message,
 			success: false,
 			message: `Some Error in Updating the Password`,

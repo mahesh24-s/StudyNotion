@@ -6,12 +6,29 @@ exports.createSection = async (req, res) => {
 	try {
 		// Extract the required properties from the request body
 		const { sectionName, courseId } = req.body;
+		const userId = req.user.id;
 
 		// Validate the input
 		if (!sectionName || !courseId) {
 			return res.status(400).json({
 				success: false,
 				message: "Missing required properties",
+			});
+		}
+
+		// Verify course ownership
+		const courseDetails = await Course.findById(courseId);
+		if (!courseDetails) {
+			return res.status(404).json({
+				success: false,
+				message: "Course not found",
+			});
+		}
+
+		if (courseDetails.instructor.toString() !== userId && req.user.accountType !== "Admin") {
+			return res.status(403).json({
+				success: false,
+				message: "You are not authorized to modify this course",
 			});
 		}
 
@@ -32,7 +49,7 @@ exports.createSection = async (req, res) => {
 				path: "courseContent",
 				populate: {
 					path: "subSection",
-					strictPopulate:false,
+					strictPopulate: false,
 				},
 			})
 			.exec();
@@ -58,26 +75,51 @@ exports.createSection = async (req, res) => {
 // UPDATE a section
 exports.updateSection = async (req, res) => {
 	try {
-		const { sectionName, sectionId,courseId } = req.body;
-		const section = await Section.findByIdAndUpdate( //updating section name
+		const { sectionName, sectionId, courseId } = req.body;
+		const userId = req.user.id;
+
+		if (!sectionName || !sectionId || !courseId) {
+			return res.status(400).json({
+				success: false,
+				message: "Missing required properties",
+			});
+		}
+
+		// Verify course ownership
+		const courseDetails = await Course.findById(courseId);
+		if (!courseDetails) {
+			return res.status(404).json({
+				success: false,
+				message: "Course not found",
+			});
+		}
+
+		if (courseDetails.instructor.toString() !== userId && req.user.accountType !== "Admin") {
+			return res.status(403).json({
+				success: false,
+				message: "You are not authorized to modify this course",
+			});
+		}
+
+		const section = await Section.findByIdAndUpdate(
 			sectionId,
 			{ sectionName },
 			{ new: true }
 		);
 
 		const course = await Course.findById(courseId)
-		.populate({
-			path:"courseContent",
-			populate:{
-				path:"subSection",
-			},
-		})
-		.exec();
+			.populate({
+				path: "courseContent",
+				populate: {
+					path: "subSection",
+				},
+			})
+			.exec();
 
 		res.status(200).json({
 			success: true,
-			message: section,
-			data:course,
+			message: "Section updated successfully",
+			data: course,
 		});
 	} catch (error) {
 		console.error("Error updating section:", error);
@@ -91,46 +133,69 @@ exports.updateSection = async (req, res) => {
 // DELETE a section
 exports.deleteSection = async (req, res) => {
 	try {
+		const { sectionId, courseId } = req.body;
+		const userId = req.user.id;
 
-		const { sectionId, courseId }  = req.body;
-		await Course.findByIdAndUpdate(courseId, {
-			$pull: {
-				courseContent: sectionId,
-			}
-		})
-
-		const section = await Section.findById(sectionId);
-		console.log(sectionId, courseId);
-		
-		if(!section) {
-			return res.status(404).json({
-				success:false,
-				message:"Section not Found",
-			})
+		if (!sectionId || !courseId) {
+			return res.status(400).json({
+				success: false,
+				message: "Missing required properties",
+			});
 		}
 
-		//delete sub section
-		await SubSection.deleteMany({_id: {$in: section.subSection}});
+		// Verify course ownership
+		const courseDetails = await Course.findById(courseId);
+		if (!courseDetails) {
+			return res.status(404).json({
+				success: false,
+				message: "Course not found",
+			});
+		}
+
+		if (courseDetails.instructor.toString() !== userId && req.user.accountType !== "Admin") {
+			return res.status(403).json({
+				success: false,
+				message: "You are not authorized to modify this course",
+			});
+		}
+
+		const section = await Section.findById(sectionId);
+		if (!section) {
+			return res.status(404).json({
+				success: false,
+				message: "Section not Found",
+			});
+		}
+
+		// Delete sub section
+		// before deleting subsections(videos) we should delete the videos from cloudinary first through a function
+		await SubSection.deleteMany({ _id: { $in: section.subSection } });
 
 		await Section.findByIdAndDelete(sectionId);
 
-		//find the updated course and return 
-		const course = await Course.findById(courseId).populate({
-			path:"courseContent",
-			populate: {
-				path: "subSection"
-			}
-		})
-		.exec();
+		const course = await Course.findByIdAndUpdate(
+			courseId,
+			{
+				$pull: {
+					courseContent: sectionId,
+				},
+			},
+			{ new: true }
+		)
+			.populate({
+				path: "courseContent",
+				populate: {
+					path: "subSection",
+				},
+			})
+			.exec();
 
 		res.status(200).json({
-			success:true,
-			message:"Section deleted",
-			data:course
+			success: true,
+			message: "Section deleted",
+			data: course,
 		});
-	} 
-	
-	catch (error) {
+	} catch (error) {
 		console.error("Error deleting section:", error);
 		res.status(500).json({
 			success: false,

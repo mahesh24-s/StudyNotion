@@ -46,7 +46,7 @@ export async function buyCourse(token, courses, userDetails, navigate, dispatch)
         if(!orderResponse.data.success) {
             throw new Error(orderResponse.data.message);
         }
-        console.log("PRINTING orderResponse", orderResponse);
+        // console.log("PRINTING orderResponse", orderResponse);
         //options
         const options = {
             key: process.env.REACT_APP_RAZORPAY_KEY,
@@ -73,12 +73,12 @@ export async function buyCourse(token, courses, userDetails, navigate, dispatch)
         paymentObject.open();
         paymentObject.on("payment.failed", function(response) {
             toast.error("oops, payment failed");
-            console.log(response.error);
+            console.error(response.error);
         })
 
     }
     catch(error) {
-        console.log("PAYMENT API ERROR.....", error);
+        console.error("PAYMENT API ERROR.....", error);
         toast.error("Could not make Payment");
     }
     toast.dismiss(toastId);
@@ -86,7 +86,7 @@ export async function buyCourse(token, courses, userDetails, navigate, dispatch)
 
 async function sendPaymentSuccessEmail(response, amount, token) {
     try{
-        console.log("inside sendPaymentSuccessEmail studentfeatures api function call")
+        // console.log("inside sendPaymentSuccessEmail studentfeatures api function call")
         await apiConnector("POST", SEND_PAYMENT_SUCCESS_EMAIL_API, {
             orderId: response.razorpay_order_id,
             paymentId: response.razorpay_payment_id,
@@ -96,13 +96,13 @@ async function sendPaymentSuccessEmail(response, amount, token) {
         })
     }
     catch(error) {
-        console.log("PAYMENT SUCCESS EMAIL ERROR....", error);
+        console.error("PAYMENT SUCCESS EMAIL ERROR....", error);
     }
 }
 
 //verify payment
 async function verifyPayment(bodyData, token, navigate, dispatch) {
-    console.log("inside verify payment studentfeatures api");
+    // console.log("inside verify payment studentfeatures api");
     const toastId = toast.loading("Verifying Payment....");
     dispatch(setPaymentLoading(true));
     try{
@@ -118,7 +118,7 @@ async function verifyPayment(bodyData, token, navigate, dispatch) {
         dispatch(resetCart());
     }   
     catch(error) {
-        console.log("PAYMENT VERIFY ERROR....", error);
+        console.error("PAYMENT VERIFY ERROR....", error);
         toast.error("Could not verify Payment");
     }
     toast.dismiss(toastId);

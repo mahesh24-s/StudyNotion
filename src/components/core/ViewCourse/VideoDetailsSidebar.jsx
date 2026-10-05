@@ -86,7 +86,7 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
                             ? "bg-yellow-200 font-semibold text-richblack-800": "hover:bg-richblack-900"} `}
                           onClick={() => {
                             navigate(
-                              `/view-section/${courseEntireData?._id}/section/${section?._id}/sub-section/${topic?._id}`
+                              `/view-course/${courseEntireData?._id}/section/${section?._id}/sub-section/${topic?._id}`
                             )
                             setVideoBarActive(topic._id)
                           }}

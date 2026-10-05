@@ -13,8 +13,8 @@ const otpSchema= new mongoose.Schema({
     },
     createdAt:{
         type: Date,
-        default: Date.now(),
-        expires:5*60,
+        default: Date.now,
+        expires: 5 * 60,
     }
 });
 
@@ -23,11 +23,11 @@ async function sendVerificationEmail(email,otp){
         const mailResponse= await mailSender(email,"verification email from studyNotion",emailTemplate(otp));
 
         // console.log(mailResponse);
-        console.log("mail sent successfully");
+        // console.log("mail sent successfully");
         // console.log("mail sent successfully",mailResponse.response);
     }
     catch(err){
-        console.log("error occured while sending mail",err);
+        // console.log("error occured while sending mail",err);
         throw err;
     }
 }

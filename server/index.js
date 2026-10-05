@@ -11,11 +11,11 @@ const database=require("./config/database");
 const cookieParser=require("cookie-parser");
 const cors=require("cors"); // to entertain our frontend requests
 const {cloudinaryConnect}=require("./config/cloudinary")
-const fileUpload=require("express-fileupload");
+const fileUpload=require("express-fileupload"); // for parsing form-data coming from the frontend (for video upload in sub-section) like multer
 const dotenv=require("dotenv");
 
-const PORT=process.env.PORT || 4000 ;
 dotenv.config();
+const PORT=process.env.PORT || 4000 ;
 database.connect();
 app.use(express.json());
 app.use(cookieParser());
@@ -27,6 +27,18 @@ app.use(cookieParser());
 // }));
 
 app.use(cors());
+
+// intercepts the requests and uploads file to the tmp folder instead of loading it into systems RAM(which would crash the system for large video files) and then populates the req.files on the request object with an object describing the file.
+// req.files = {
+//   video: {
+//     name: "lecture1.mp4",
+//     size: 52428800,
+//     mimetype: "video/mp4",
+//     tempFilePath: "C:\\Users\\...\\AppData\\Local\\Temp\\tmp-1-169...",
+//     truncated: false,
+//     ...
+//   }
+// }
 
 app.use(
     fileUpload({

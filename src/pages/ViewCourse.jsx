@@ -15,14 +15,18 @@ const ViewCourse = () => {
     useEffect(()=> {
         const setCourseSpecificDetails = async() => {
               const courseData = await getFullDetailsOfCourse(courseId, token);
-              dispatch(setCourseSectionData(courseData.courseDetails.courseContent));
-              dispatch(setEntireCourseData(courseData.courseDetails));
-              dispatch(setCompletedLectures(courseData.completedVideos));
-              let lectures = 0;
-              courseData?.courseDetails?.courseContent?.forEach((sec) => {
-                lectures += sec.subSection.length
-              })  
-              dispatch(setTotalNoOfLectures(lectures));
+
+              if (courseData?.courseDetails) {
+                dispatch(setCourseSectionData(courseData.courseDetails.courseContent));
+                dispatch(setEntireCourseData(courseData.courseDetails));
+                dispatch(setCompletedLectures(courseData.completedVideos || []));
+                let lectures = 0;
+                courseData.courseDetails.courseContent?.forEach((sec) => {
+                  lectures += sec.subSection?.length || 0;
+                });
+                dispatch(setTotalNoOfLectures(lectures));
+              }
+
         }
         setCourseSpecificDetails();
     },[]);
